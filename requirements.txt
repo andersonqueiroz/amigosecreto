@@ -1,0 +1,2 @@
+sendgrid==6.4.7
+python-decouple==3.3
