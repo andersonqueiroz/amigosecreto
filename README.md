@@ -1,5 +1,5 @@
 # Script para sorteio de amigo secreto
-O script tem como entrada um arquivo CSV com uma lista de nomes e emails e após randomização envia o resultado do sorteio para cada participante via email.
+O script tem como entrada um arquivo CSV com uma lista de nomes, emails e sugestões de presente e após randomização envia o resultado do sorteio para cada participante via email.
 
 ## Utilização
     pip install -r requirements.txt
