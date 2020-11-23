@@ -31,13 +31,13 @@ def shuffle_people(people):
 
         shuffle(people)
 
-        with open(people_filename, 'wb') as picke_file:
-            pickle.dump(people, picke_file)
+        with open(people_filename, 'wb') as pickle_file:
+            pickle.dump(people, pickle_file)
         
         return people
     
-    with open(people_filename, 'rb') as picke_file:
-        return pickle.load(picke_file)
+    with open(people_filename, 'rb') as pickle_file:
+        return pickle.load(pickle_file)
 
 def send_message(mail):
     try:
@@ -54,14 +54,22 @@ def send_emails(people):
         template = template_file.read()
 
     for i, person in enumerate(people[:-1]):
-        body = template.format(name=person["name"], friend=people[i+1]["name"])
+        body = template.format(
+            name=person["name"], 
+            friend=people[i+1]["name"],
+            suggestion=people[i+1]["gift_suggestion"]
+        )
         content = Content("text/html", body)
         to_email = To(person["email"])
         mail = Mail(from_email, to_email, subject, content)
         send_message(mail)
 
 
-    body = template.format(name=people[-1]["name"], friend=people[0]["name"])
+    body = template.format(
+        name=people[-1]["name"],
+        friend=people[0]["name"],
+        suggestion=people[0]["gift_suggestion"]
+    )
     content = Content("text/html", body)
     to_email = To(people[-1]["email"])
     mail = Mail(from_email, to_email, subject, content)
