@@ -1,13 +1,11 @@
 import pickle
 import os
 import csv
-
+import smtplib
+from email.message import EmailMessage
 from random import shuffle
 
 from decouple import config
-
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, To, Content, Email
 
 people_csv = 'people.csv'
 people_filename = 'people.pkl'
@@ -18,7 +16,6 @@ def get_people_list():
 
     with open(people_csv, mode='r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
-        line_count = 0
         for row in csv_reader:
             people.append(row)
 
@@ -39,16 +36,25 @@ def shuffle_people(people):
     with open(people_filename, 'rb') as pickle_file:
         return pickle.load(pickle_file)
 
-def send_message(mail):
+def send_mail_from_template(to_email, subject, content):
     try:
-        sg = SendGridAPIClient(api_key=config('SENDGRID_API_KEY'))
-        sg.client.mail.send.post(request_body=mail.get())
+        gmail_user = config('EMAIL_LOGIN')
+        gmail_password = config('EMAIL_PASSWORD')
+        smtp = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        smtp.login(gmail_user, gmail_password)
+
+        msg = EmailMessage()
+        msg.set_content(content, subtype='html')
+        msg['Subject'] = subject
+        msg['From'] = f'Amigo Secreto Queiroz <{gmail_user}>'
+        msg['To'] = to_email
+
+        smtp.send_message(msg)
     except Exception as e:
         print(e)
 
 def send_emails(people):
-    from_email = Email("nataldosqueiroz@gmail.com")
-    subject = "Natal dos Queiroz: seu amigo secreto!"
+    subject = "Natal dos queiroz: seu amigo secreto!"
 
     with open(email_template, 'r') as template_file:
         template = template_file.read()
@@ -59,21 +65,16 @@ def send_emails(people):
             friend=people[i+1]["name"],
             suggestion=people[i+1]["gift_suggestion"]
         )
-        content = Content("text/html", body)
-        to_email = To(person["email"])
-        mail = Mail(from_email, to_email, subject, content)
-        send_message(mail)
-
+        
+        send_mail_from_template(to_email=person["email"], subject=subject, content=body)
 
     body = template.format(
         name=people[-1]["name"],
         friend=people[0]["name"],
         suggestion=people[0]["gift_suggestion"]
     )
-    content = Content("text/html", body)
-    to_email = To(people[-1]["email"])
-    mail = Mail(from_email, to_email, subject, content)
-    send_message(mail)
+    
+    send_mail_from_template(to_email=people[-1]["email"], subject=subject, content=body)
 
 
 def main():
