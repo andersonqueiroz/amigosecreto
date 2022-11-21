@@ -2,6 +2,7 @@ import pickle
 import os
 import csv
 import smtplib
+import ssl
 from email.message import EmailMessage
 from random import shuffle
 
@@ -38,18 +39,26 @@ def shuffle_people(people):
 
 def send_mail_from_template(to_email, subject, content):
     try:
-        gmail_user = config('EMAIL_LOGIN')
-        gmail_password = config('EMAIL_PASSWORD')
-        smtp = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-        smtp.login(gmail_user, gmail_password)
+        smtp_user = config('EMAIL_LOGIN')
+        smtp_password = config('EMAIL_PASSWORD')
+        smtp_server = config('SMTP_SERVER')
+        sender_address = config('SENDER_ADDRES')
+        smtp_port = config('SMTP_PORT', cast=int)
 
         msg = EmailMessage()
         msg.set_content(content, subtype='html')
         msg['Subject'] = subject
-        msg['From'] = f'Amigo Secreto Queiroz <{gmail_user}>'
+        msg['From'] = f'Amigo Secreto Queiroz <{sender_address}>'
         msg['To'] = to_email
 
-        smtp.send_message(msg)
+        context = ssl.create_default_context()
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.ehlo() 
+            server.starttls(context=context)
+            server.ehlo()
+            server.login(smtp_user, smtp_password)
+            server.send_message(msg)
+
     except Exception as e:
         print(e)
 
